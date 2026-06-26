@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>eqr'</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  canvas { display: block; max-width: 100%; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const W = window.innerWidth;
+const H = window.innerHeight;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+canvas.width = W;
+canvas.height = H;
+
+const off = document.createElement('canvas');
+off.width = W; off.height = H;
+const octx = off.getContext('2d');
+
+const PAD = W * 0.08;
+const svgW = 243.3, svgH = 123.32;
+const scaleX = (W - PAD * 2) / svgW;
+const scaleY = (H - PAD * 2) / svgH;
+const SCALE = Math.min(scaleX, scaleY);
+const OX = (W - svgW * SCALE) / 2;
+const OY = (H - svgH * SCALE) / 2;
+
+octx.fillStyle = '#000';
+octx.fillRect(0, 0, W, H);
+octx.save();
+octx.translate(OX, OY);
+octx.scale(SCALE, SCALE);
+octx.fillStyle = '#fff';
+octx.fill(new Path2D("M58.13,34.06c-3.2-2.8-6.8-4.87-10.81-6.19-4.01-1.32-8.18-1.98-12.5-1.98-7.03,0-13.16,1.54-18.39,4.62-5.22,3.08-9.27,7.36-12.13,12.86C1.43,48.85,0,55.2,0,62.41s1.45,13.64,4.36,19.05c2.91,5.4,7.07,9.6,12.47,12.57,5.41,2.98,11.83,4.46,19.27,4.46,5.41,0,10.24-.76,14.5-2.29,4.26-1.53,7.82-3.68,10.68-6.44,2.86-2.77,4.9-5.95,6.12-9.55l-13.99-3.08c-.85,2.18-2.11,4.01-3.75,5.5-1.65,1.49-3.59,2.6-5.84,3.33-2.26.73-4.78,1.1-7.57,1.1-4.24,0-7.95-.85-11.15-2.55-3.2-1.7-5.69-4.21-7.47-7.54-1.6-3-2.44-6.64-2.6-10.85h53.54v-4.9c0-6.37-.94-11.78-2.8-16.25-1.87-4.47-4.4-8.1-7.61-10.91ZM17.27,47.61c1.56-3.08,3.82-5.56,6.79-7.45,2.97-1.89,6.56-2.83,10.75-2.83s7.76.92,10.58,2.77c2.82,1.84,4.94,4.41,6.39,7.7,1.05,2.4,1.71,5.07,1.99,8.02H15.04c.22-2.92.95-5.67,2.23-8.21Z"));
+octx.fill(new Path2D("M135.93,38.21h-1.22c-.85-1.47-2.09-3.16-3.72-5.09-1.62-1.93-3.86-3.61-6.72-5.06-2.86-1.44-6.64-2.17-11.32-2.17-6.04,0-11.45,1.43-16.22,4.27-4.78,2.85-8.54,6.98-11.29,12.38-2.75,5.41-4.12,11.92-4.12,19.55s1.35,14.03,4.06,19.46c2.7,5.43,6.44,9.6,11.22,12.51,4.78,2.91,10.23,4.37,16.36,4.37,4.55,0,8.27-.72,11.15-2.17,2.88-1.44,5.16-3.13,6.83-5.06,1.67-1.93,2.93-3.65,3.78-5.16h.81v37.28h14.87V26.77h-14.46v11.44ZM133.53,74.83c-1.51,3.71-3.72,6.61-6.63,8.71-2.91,2.09-6.48,3.14-10.71,3.14s-7.89-1.09-10.81-3.27c-2.93-2.18-5.14-5.14-6.62-8.87-1.49-3.73-2.23-7.92-2.23-12.57s.73-8.75,2.2-12.41c1.46-3.67,3.65-6.57,6.56-8.71,2.91-2.14,6.54-3.21,10.91-3.21s7.87,1.02,10.78,3.05c2.91,2.03,5.1,4.86,6.59,8.49s2.23,7.89,2.23,12.79-.76,9.15-2.26,12.86Z"));
+octx.fill(new Path2D("M207.98,25.86c-1.22-.06-2.3-.1-3.24-.1-4.42,0-8.36,1.09-11.83,3.27-3.47,2.18-5.9,5.2-7.3,9.05h-.81v-11.31h-14.4v70.28h14.87v-42.68c0-3.1.77-5.83,2.3-8.2,1.53-2.37,3.67-4.22,6.42-5.56,2.75-1.34,5.84-2.01,9.26-2.01,1.58,0,3.13.09,4.67.26,1.53.17,2.57.33,3.11.5v-13.2c-.81-.13-1.83-.22-3.04-.28Z"));
+octx.fillRect(228.31, 0, 14.99, 14.91);
+octx.restore();
+
+// Sample — larger step on mobile for fewer particles
+const STEP = W < 600 ? 8 : 5;
+const imgData = octx.getImageData(0, 0, W, H);
+const data = imgData.data;
+const targetPts = [];
+for (let y = 0; y < H; y += STEP) {
+  for (let x = 0; x < W; x += STEP) {
+    if (data[(y * W + x) * 4] > 180) targetPts.push([x, y]);
+  }
+}
+
+for (let i = targetPts.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [targetPts[i], targetPts[j]] = [targetPts[j], targetPts[i]];
+}
+
+const CHARS = ["e","q","r","'","e","q","r","e","q","r","'"];
+const FONT_SIZE = W < 600 ? 5 + Math.random() * 4 : 6;
+
+const particles = targetPts.map((pt, i) => {
+  const angle = Math.random() * Math.PI * 2;
+  const dist = 150 + Math.random() * 350;
+  return {
+    tx: pt[0], ty: pt[1],
+    x: pt[0] + Math.cos(angle) * dist,
+    y: pt[1] + Math.sin(angle) * dist,
+    char: CHARS[i % CHARS.length],
+    size: (W < 600 ? 5 : 6) + Math.random() * 4,
+    delay: Math.random() * 30, // 딜레이 줄임
+    alpha: 0.7 + Math.random() * 0.3,
+  };
+});
+
+let frame = 0;
+function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+function draw() {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+
+  for (const p of particles) {
+    const lf = Math.max(0, frame - p.delay);
+    const et = ease(Math.min(lf / 50, 1)); // 50프레임으로 단축
+    const x = p.x + (p.tx - p.x) * et;
+    const y = p.y + (p.ty - p.y) * et;
+    ctx.globalAlpha = p.alpha * Math.min(lf / 10, 1);
+    ctx.font = `${p.size}px 'Courier New', monospace`;
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillText(p.char, x, y);
+  }
+
+  ctx.globalAlpha = 1;
+  frame++;
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>
